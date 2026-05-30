@@ -1,47 +1,160 @@
-### Before runing the PSMC we have to remove the Sex Chromosome ##
+###############################################################################
+
+# PSMC ANALYSIS PIPELINE
+
+###############################################################################
+
+### Create tmux session
+
+tmux new -s psmc_grd
+
+###############################################################################
+
+# STEP 1: REMOVE X CHROMOSOME & MTDNA 
+
+###############################################################################
+
 cut -f1 dolphin_chr.fa.fai
-grep "NC_133428.1_RaGOO" dolphin_chr.fa.fai
-tmux new -s psmc_grd ##
-grep "^NC_" dolphin_chr.fa.fai | cut -f1 | grep -v "NC_047055.1_RaGOO" > autosomes.list
+
+grep "^NC_" dolphin_chr.fa.fai | 
+cut -f1 | 
+grep -v "NC_047055.1_RaGOO" > autosomes.list
+
 cat autosomes.list
-samtools view \
--b \
-DP_1.dedup.bam \
-$(cat autosomes.list) \
+
+###############################################################################
+
+# STEP 2: CREATE PSMC BAM
+
+###############################################################################
+
+samtools view 
+-b 
+DP_1.dedup.bam 
+$(cat autosomes.list) 
 -o DP_1.psmc.bam
 
-### Indexing psms.bam ###
+###############################################################################
+
+# STEP 3: INDEX BAM
+
+###############################################################################
+
 samtools index DP_1.psmc.bam
 
-### Verification of Index ###
 ls -lh DP_1.psmc.bam*
 
-samtools depth -a DP_1.psmc.bam | \
+###############################################################################
+
+# STEP 4: CALCULATE COVERAGE
+
+###############################################################################
+
+samtools depth -a DP_1.psmc.bam | 
 awk '{sum+=$3; n++} END {print sum/n}'
 
-### Variant Calling ###
-bcftools mpileup \
--f dolphin_chr.fa \
-DP_1.psmc.bam | \
-bcftools call -c -Ov -o DP_1.raw.vcf
+###############################################################################
 
-### Generate Consensus FASTQ ###
-vcfutils.pl vcf2fq -d 10 -D 100 DP_1.raw.vcf > DP_1.consensus.fq
+# STEP 5: VARIANT CALLING
 
-### Create PSMC Input ###
+###############################################################################
+
+bcftools mpileup 
+-C50 
+-Ou 
+-f dolphin_chr.fa 
+DP_1.psmc.bam | 
+bcftools call 
+-c 
+-Ob 
+-o DP_1.raw.bcf
+
+bcftools index DP_1.raw.bcf
+
+###############################################################################
+
+# STEP 6: CONVERT BCF TO VCF
+
+###############################################################################
+
+bcftools view DP_1.raw.bcf > DP_1.raw.vcf
+
+head DP_1.raw.vcf
+
+###############################################################################
+
+# STEP 7: GENERATE CONSENSUS FASTQ
+
+###############################################################################
+
+vcfutils.pl vcf2fq 
+-d 3 
+-D 30 
+DP_1.raw.vcf > DP_1.consensus.fq
+
+ls -lh DP_1.consensus.fq
+
+###############################################################################
+
+# STEP 8: CREATE PSMC INPUT
+
+###############################################################################
+
 fq2psmcfa DP_1.consensus.fq > DP_1.psmcfa
 
-#### Run PSMC ###
-psmc \
--N25 \
--t15 \
--r5 \
--p "4+25*2+4+6" \
--o DP_1.psmc \
+ls -lh DP_1.psmcfa
+
+###############################################################################
+
+# STEP 9: RUN PSMC
+
+###############################################################################
+
+psmc 
+-N25 
+-t15 
+-r5 
+-p "4+25*2+4+6" 
+-o DP_1.psmc 
 DP_1.psmcfa
 
-### Bootstrap ###
+###############################################################################
+
+# STEP 10: BOOTSTRAP
+
+###############################################################################
+
 splitfa DP_1.psmcfa > DP_1.split.psmcfa
 
-### Plot###
+seq 1 100 | xargs -I{} -P 20 
+sh -c "psmc 
+-b 
+-N25 
+-t15 
+-r5 
+-p '4+25*2+4+6' 
+-o round-{}.psmc 
+DP_1.split.psmcfa"
+
+###############################################################################
+
+# STEP 11: PLOT
+
+###############################################################################
+
 psmc_plot.pl DP_1_plot DP_1.psmc
+
+###############################################################################
+
+# OUTPUT FILES
+
+###############################################################################
+
+DP_1.raw.bcf
+DP_1.raw.vcf
+DP_1.consensus.fq
+DP_1.psmcfa
+DP_1.psmc
+DP_1_plot.eps
+DP_1_plot.png
+
