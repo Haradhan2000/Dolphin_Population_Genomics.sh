@@ -9,7 +9,15 @@ samtools view \
 DP_1.dedup.bam \
 $(cat autosomes.list) \
 -o DP_1.psmc.bam
+
+### Indexing psms.bam ###
 samtools index DP_1.psmc.bam
+
+### Verification of Index ###
+ls -lh DP_1.psmc.bam*
+
+samtools depth -a DP_1.psmc.bam | \
+awk '{sum+=$3; n++} END {print sum/n}'
 
 ### Variant Calling ###
 bcftools mpileup \
