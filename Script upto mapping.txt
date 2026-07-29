@@ -1,1 +1,476 @@
+###################################################################################################################################################################
+Data processing and pre-mapping
+#####################################################################################################################################################################
+
+fastqc raw_data/*.fastq.gz \
+-o analysis_output/qc
+
+cd analysis_output/qc
+
+multiqc .
+
+mkdir -p ~/Dolphin_WGS_Analysis/analysis_output/trimmed
+
+cd ~/Dolphin_WGS_Analysis/raw_data
+
+for sample in DP_1 DP_2
+do
+
+AdapterRemoval \
+--file1 ${sample}_*_R1_001.fastq.gz \
+--file2 ${sample}_*_R2_001.fastq.gz \
+--basename ~/Dolphin_WGS_Analysis/analysis_output/trimmed/${sample} \
+--gzip \
+--threads 8 \
+--qualitymax 41 \
+--collapse \
+--trimns \
+--trimqualities \
+--adapter1 AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC \
+--adapter2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA \
+--minlength 30 \
+--minquality 20 \
+--minadapteroverlap 1
+
+done
+
+cd ~/Dolphin_WGS_Analysis/analysis_output/trimmed
+
+for sample in DP_1 DP_2
+do
+
+echo "Combining files for ${sample}"
+
+cat ${sample}.collapsed.gz \
+    ${sample}.collapsed.truncated.gz \
+    ${sample}.singleton.truncated.gz \
+    ${sample}.pair1.truncated.gz \
+    ${sample}.pair2.truncated.gz \
+    > ${sample}.trimmed_combined.fastq.gz
+
+done
+
+ls -lh *.trimmed_combined.fastq.gz
+###############################################################################################################################################################################
+###############################################################################
+# Dolphin chromosome-scale genome scaffolding pipeline
+# Using RaGOO
+###############################################################################
+
+set -e
+set -o pipefail
+
+###############################################################################
+# INPUT FILES
+###############################################################################
+
+QUERY="reference_genome/GCA_054084255.1_GACMC_Pgan_genomic.fna"
+
+REFERENCE="reference_genome/GCF_011762595.2_mTurTru1.mat.Y_genomic.fna"
+
+THREADS=20
+
+###############################################################################
+# CREATE OUTPUT DIRECTORIES
+###############################################################################
+
+mkdir -p \
+01_QC_before \
+02_filtered \
+03_ragoo \
+04_QC_after \
+05_synteny \
+06_final_reference \
+07_indexes \
+08_logs
+
+###############################################################################
+# STEP 1 — INITIAL QC
+###############################################################################
+
+echo "Running QUAST before scaffolding..."
+
+quast.py \
+${QUERY} \
+-o 01_QC_before/quast_before \
+-t ${THREADS} \
+2>&1 | tee 08_logs/quast_before.log
+
+echo "Running BUSCO before scaffolding..."
+
+busco \
+-i ${QUERY} \
+-o busco_before \
+-m genome \
+-l mammalia_odb10 \
+-c ${THREADS} \
+--out_path 01_QC_before \
+2>&1 | tee 08_logs/busco_before.log
+###############################################################################
+# STEP 2 — REMOVE SMALL SCAFFOLDS
+###############################################################################
+
+echo "Filtering scaffolds smaller than 5 kb..."
+
+seqkit seq \
+-m 5000 \
+${QUERY} \
+> 02_filtered/dolphin_filtered.fa
+
+###############################################################################
+# STEP 3 — RUN RAGOO
+###############################################################################
+
+ragoo.py \
+02_filtered/dolphin_filtered.fa \
+${REFERENCE} \
+-t ${THREADS} \
+-b \
+2>&1 | tee 08_logs/ragoo.log
+###############################################################################
+# STEP 4 — FINAL ASSEMBLY
+###############################################################################
+
+cp \
+03_ragoo/ragoo.fasta \
+06_final_reference/dolphin_chr.fa
+
+###############################################################################
+# STEP 5 — POST-SCAFFOLDING QC
+###############################################################################
+
+echo "Running QUAST after scaffolding..."
+
+THREADS=40
+
+quast.py \
+06_final_reference/dolphin_chr.fa \
+-o 04_QC_after/quast_after \
+-t ${THREADS} \
+2>&1 | tee 08_logs/quast_after.log
+
+echo "Running BUSCO after scaffolding..."
+
+busco \
+-i 06_final_reference/dolphin_chr.fa \
+-o busco_after \
+-m genome \
+-l mammalia_odb10 \
+-c ${THREADS} \
+--out_path 04_QC_after \
+2>&1 | tee 08_logs/busco_after.log
+
+###############################################################################
+# STEP 6 — SYNTENY VALIDATION
+###############################################################################
+
+echo "Running whole genome alignment validation..."
+
+cd 05_synteny
+
+nucmer \
+../reference_genome/GCF_011762595.2_mTurTru1.mat.Y_genomic.fna \
+../06_final_reference/dolphin_chr.fa \
+-p dolphin
+
+delta-filter \
+-1 dolphin.delta \
+> dolphin.filter.delta
+
+mummerplot \
+--fat \
+--filter \
+-p dolphin \
+dolphin.filter.delta
+
+cd ..
+###############################################################################
+# STEP 7 — COPY FINAL GENOME
+###############################################################################
+
+cp \
+06_final_reference/dolphin_chr.fa \
+07_indexes/
+
+###############################################################################
+# STEP 8 — BWA INDEX
+###############################################################################
+
+echo "Running BWA index..."
+
+bwa index \
+07_indexes/dolphin_chr.fa
+
+###############################################################################
+# STEP 9 — FASTA INDEX
+###############################################################################
+
+echo "Running samtools faidx..."
+
+samtools faidx \
+07_indexes/dolphin_chr.fa
+
+###############################################################################
+# STEP 10 — CREATE SEQUENCE DICTIONARY
+###############################################################################
+
+echo "Creating sequence dictionary..."
+
+picard CreateSequenceDictionary \
+R=07_indexes/dolphin_chr.fa \
+O=07_indexes/dolphin_chr.dict
+
+###############################################################################
+# PIPELINE COMPLETE
+###############################################################################
+
+echo "PIPELINE COMPLETED SUCCESSFULLY"
+echo "=================================================="
+
+echo ""
+echo "Final chromosome-scale genome:"
+echo "07_indexes/dolphin_chr.fa"
+
+echo ""
+echo "Indexes generated:"
+echo "07_indexes/dolphin_chr.fa.fai"
+echo "07_indexes/dolphin_chr.dict"
+echo "07_indexes/dolphin_chr.fa.bwt"
+
+echo ""
+echo "Genome is now ready for:"
+echo "- historic DNA mapping"
+echo "- SNP calling"
+echo "- population genomics"
+
+
+Data Mapping
+###################################################################################################################################################################################
+# Activate environment
+############################################
+
+conda activate dolphin_wgs
+
+
+############################################
+# Install mapping tools (run once)
+############################################
+
+conda install -c bioconda bwa samtools -y
+
+
+############################################
+# Create output folders
+############################################
+
+mkdir -p ~/Dolphin_WGS_Analysis/analysis_output/{mapped,sorted_bam,dedup_bam}
+
+
+############################################
+# Move to reference genome folder (NA)
+############################################
+
+cd ~/Dolphin_WGS_Analysis/reference_genome
+
+# Check reference genome file name
+ls
+
+
+############################################
+# Index reference genome (run once only) (NA)
+############################################
+
+bwa index dolphin_reference.fasta
+
+samtools faidx dolphin_reference.fasta
+
+
+############################################
+# Move to project directory
+############################################
+
+cd ~/Dolphin_WGS_Analysis
+
+
+for sample in DP_1 DP_2
+do
+
+echo "Mapping ${sample}"
+
+bwa mem \
+-t 8 \
+07_indexes/dolphin_chr.fa \
+analysis_output/trimmed/${sample}.pair1.truncated.gz \
+analysis_output/trimmed/${sample}.pair2.truncated.gz \
+> analysis_output/mapped/${sample}.sam
+
+done
+
+
+############################################
+# Index sorted BAM files
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Sorting ${sample}"
+
+samtools sort \
+-@ 8 \
+-O bam \
+analysis_output/mapped/${sample}.sam \
+-o analysis_output/sorted_bam/${sample}.sorted.bam
+
+done
+############################################
+# Filter mapped reads
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Filtering ${sample}..."
+
+samtools view \
+-h \
+-F 4 \
+-q 30 \
+-b \
+analysis_output/sorted_bam/${sample}.sorted.bam \
+> analysis_output/sorted_bam/${sample}.filtered.bam
+
+done
+
+
+############################################
+# Index filtered BAM files
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Indexing filtered ${sample}..."
+
+samtools index \
+analysis_output/sorted_bam/${sample}.filtered.bam
+
+done
+
+############################################
+# Create directories
+############################################
+
+mkdir -p analysis_output/name_sorted_bam
+mkdir -p analysis_output/fixmate_bam
+mkdir -p analysis_output/fixmate_sorted_bam
+
+
+############################################
+# Name-sort BAM files
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Name sorting ${sample}"
+
+samtools sort \
+-n \
+-@ 8 \
+-O bam \
+analysis_output/sorted_bam/${sample}.filtered.bam \
+-o analysis_output/name_sorted_bam/${sample}.namesorted.bam
+
+done
+
+
+############################################
+# Run fixmate
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Running fixmate for ${sample}"
+
+samtools fixmate \
+-m \
+analysis_output/name_sorted_bam/${sample}.namesorted.bam \
+analysis_output/fixmate_bam/${sample}.fixmate.bam
+
+done
+
+
+############################################
+# Coordinate sort fixmate BAM files
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Sorting fixmate BAM for ${sample}"
+
+samtools sort \
+-@ 8 \
+-O bam \
+analysis_output/fixmate_bam/${sample}.fixmate.bam \
+-o analysis_output/fixmate_sorted_bam/${sample}.fixmate.sorted.bam
+
+done
+
+# Remove PCR duplicates
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Removing duplicates from ${sample}"
+
+samtools markdup \
+-r \
+-s \
+analysis_output/fixmate_sorted_bam/${sample}.fixmate.sorted.bam \
+analysis_output/dedup_bam/${sample}.dedup.bam
+
+done
+
+############################################
+# Index deduplicated BAM files
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Indexing deduplicated ${sample}..."
+
+samtools index \
+analysis_output/dedup_bam/${sample}.dedup.bam
+
+done
+
+
+############################################
+# Generate mapping statistics
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Generating flagstat for ${sample}..."
+
+samtools flagstat \
+analysis_output/dedup_bam/${sample}.dedup.bam \
+> analysis_output/dedup_bam/${sample}.flagstat.txt
+
+done
+
+
+############################################
+# Check output files
+############################################
+
+ls analysis_output/dedup_bam
+
+##############################################################################################################################################
 
