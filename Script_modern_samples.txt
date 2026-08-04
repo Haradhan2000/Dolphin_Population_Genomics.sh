@@ -1,1 +1,141 @@
+#!/bin/bash
+############################################################
+# Modern Dolphin WGS Pipeline
+############################################################
 
+############################
+# Activate conda environment
+############################
+conda activate dolphin_wgs
+
+############################
+# Variables
+############################
+THREADS=32
+REF=~/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa
+
+############################################################
+######################## FASTQC #############################
+############################################################
+
+echo "==========================================="
+echo "Running FastQC..."
+echo "==========================================="
+
+fastqc \
+    01_raw_data/*.fastq \
+    -t 16 \
+    -o 02_fastqc_reports
+
+echo "FastQC completed."
+
+############################################################
+###################### TRIM GALORE ##########################
+############################################################
+
+echo "==========================================="
+echo "Running Trim Galore..."
+echo "==========================================="
+
+for file in 01_raw_data/*_1.fastq
+do
+    mate="${file/_1.fastq/_2.fastq}"
+
+    sample=$(basename "$file" _1.fastq)
+
+    echo "Trimming ${sample}..."
+
+    trim_galore \
+        --paired \
+        --cores ${THREADS} \
+        --output_dir 03_trimmed \
+        "$file" "$mate"
+
+    echo "${sample} completed."
+done
+
+echo "All trimming completed."
+
+############################################################
+######################## MAPPING ############################
+############################################################
+
+echo "==========================================="
+echo "Running BWA-MEM..."
+echo "==========================================="
+
+for file1 in 03_trimmed/*_1_val_1.fq.gz
+do
+    file2=${file1/_1_val_1.fq.gz/_2_val_2.fq.gz}
+
+    sample=$(basename "$file1" _1_val_1.fq.gz)
+
+    echo "Mapping ${sample}..."
+
+    bwa mem \
+        -t ${THREADS} \
+        ${REF} \
+        "$file1" \
+        "$file2" \
+        > 04_mapping/${sample}.sam
+
+    echo "${sample} completed."
+done
+
+echo "All samples mapped."
+
+############################################################
+###################### SAM TO BAM ###########################
+############################################################
+
+echo "==========================================="
+echo "Converting SAM to sorted BAM..."
+echo "==========================================="
+
+for file in 04_mapping/*.sam
+do
+    sample=$(basename "$file" .sam)
+
+    echo "Processing ${sample}..."
+
+    samtools view \
+        -@ ${THREADS} \
+        -b "$file" | \
+    samtools sort \
+        -@ ${THREADS} \
+        -o 05_bam_files/${sample}.sorted.bam
+
+    samtools index \
+        05_bam_files/${sample}.sorted.bam
+
+    echo "${sample} completed."
+done
+
+echo "All BAM files generated."
+
+############################################################
+######################## QUALIMAP ###########################
+############################################################
+
+echo "==========================================="
+echo "Running Qualimap..."
+echo "==========================================="
+
+for file in 05_bam_files/*.sorted.bam
+do
+    sample=$(basename "$file" .sorted.bam)
+
+    echo "Running Qualimap for ${sample}..."
+
+    qualimap bamqc \
+        -bam "$file" \
+        -outdir 06_mapping_statistics/${sample}_qualimap \
+        -nt ${THREADS}
+
+    echo "${sample} completed."
+done
+
+echo "==========================================="
+echo "Pipeline completed successfully."
+echo "==========================================="
+#############################################################
