@@ -5,8 +5,8 @@
 # Activate conda environment
 ############################
 conda activate dolphin_wgs
-
 ## run fastqc
+###########################################
 conda activate fastqc
 
 fastqc \
@@ -15,6 +15,7 @@ fastqc \
     -o 02_fastqc_reports
 #######################################
 ### Trimming 
+############################################
 conda activate dolphin_wgs
 
 for file in 01_raw_data/*_1.fastq
@@ -27,3 +28,43 @@ do
         --output_dir 03_trimmed \
         "$file" "$mate"
 done
+###########################################################
+#### Mapping 
+############################################################
+for file1 in 03_trimmed/*_1_val_1.fq
+do
+    file2=${file1/_1_val_1.fq/_2_val_2.fq}
+    sample=$(basename "$file1" _1_val_1.fq)
+
+    echo "Mapping ${sample}..."
+
+    bwa mem \
+        -t 32 \
+        ~/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa \
+        "$file1" \
+        "$file2" \
+        > 04_mapping/${sample}.sam
+
+    echo "${sample} completed."
+done
+
+echo "All samples have been mapped successfully."
+#######################################################################
+### Convert SAM to sorted BAM
+############################################################
+
+for file in 04_mapping/*.sam
+do
+    sample=$(basename "$file" .sam)
+
+    echo "Processing ${sample}..."
+
+    samtools view -@ 32 -b "$file" | \
+    samtools sort -@ 32 \
+        -o 05_bam_files/${sample}.sorted.bam
+
+    echo "${sample} completed."
+done
+
+echo "All SAM files converted to sorted BAM successfully."
+#################################################################################
