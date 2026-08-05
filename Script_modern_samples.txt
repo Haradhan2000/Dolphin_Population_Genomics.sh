@@ -37,11 +37,10 @@ done
 fastqc \
     03_trimmed/*_val_*.fq \
     -t 32 \
-    -o 07_trimmed_fastqc && \
-
+    -o 03_trimmed && \
 multiqc \
-    07_trimmed_fastqc \
-    -o 07_trimmed_fastqc
+    03_trimmed \
+    -o 03_trimmed
 ####################################################
 #### Mapping 
 ############################################################
