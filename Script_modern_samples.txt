@@ -32,6 +32,17 @@ do
         "$file" "$mate"
 done
 ###########################################################
+###Fastqc reports after trimming
+#######################################################
+fastqc \
+    03_trimmed/*_val_*.fq \
+    -t 32 \
+    -o 07_trimmed_fastqc && \
+
+multiqc \
+    07_trimmed_fastqc \
+    -o 07_trimmed_fastqc
+####################################################
 #### Mapping 
 ############################################################
 for file1 in 03_trimmed/*_1_val_1.fq
