@@ -13,6 +13,9 @@ fastqc \
     01_raw_data/*.fastq \
     -t 16 \
     -o 02_fastqc_reports
+multiqc \
+    02_fastqc_reports \
+    -o 02_fastqc_reports
 #######################################
 ### Trimming 
 ############################################
