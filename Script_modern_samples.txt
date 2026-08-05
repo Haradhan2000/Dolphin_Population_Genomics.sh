@@ -2,60 +2,31 @@
 ############################################################
 # Modern Dolphin WGS Pipeline
 ############################################################
-
-############################
 # Activate conda environment
 ############################
 conda activate dolphin_wgs
 
-############################
-# Variables
-############################
-THREADS=32
-REF=~/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa
-
-############################################################
-######################## FASTQC #############################
-############################################################
-
-echo "==========================================="
-echo "Running FastQC..."
-echo "==========================================="
+## run fastqc
+conda activate fastqc
 
 fastqc \
     01_raw_data/*.fastq \
     -t 16 \
     -o 02_fastqc_reports
-
-echo "FastQC completed."
-
-############################################################
-###################### TRIM GALORE ##########################
-############################################################
-
-echo "==========================================="
-echo "Running Trim Galore..."
-echo "==========================================="
+#######################################
+### Trimming 
+conda activate dolphin_wgs
 
 for file in 01_raw_data/*_1.fastq
 do
     mate="${file/_1.fastq/_2.fastq}"
 
-    sample=$(basename "$file" _1.fastq)
-
-    echo "Trimming ${sample}..."
-
     trim_galore \
         --paired \
-        --cores ${THREADS} \
+        --cores 32 \
         --output_dir 03_trimmed \
         "$file" "$mate"
-
-    echo "${sample} completed."
 done
-
-echo "All trimming completed."
-
 ############################################################
 ######################## MAPPING ############################
 ############################################################
