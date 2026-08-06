@@ -37,9 +37,10 @@ do
     echo "Running Qualimap for ${sample}..."
 
     qualimap bamqc \
+        --java-mem-size=16G \
         -bam "$file" \
         -outdir 06_mapping_statistics/${sample}_qualimap \
-        -nt 32
+        -nt 16
 
     echo "${sample} completed."
 done
