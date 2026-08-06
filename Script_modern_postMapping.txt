@@ -62,5 +62,13 @@ done
 
 echo "Duplicate removal completed."
 #####################################################################
+####### Indexing deduplicated BAM
+for bam in 09_markduplicates/*_deduplicated.bam
+do
+    samtools index -@ 32 "$bam"
+done
+
+echo "All deduplicated BAM files indexed successfully."
+##############################################################
 
 
