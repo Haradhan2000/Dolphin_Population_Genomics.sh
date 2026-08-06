@@ -46,3 +46,21 @@ done
 
 echo "Qualimap analysis completed."
 #####################################################################
+#### Mark duplicates
+#################################################################
+
+for file in 05_bam_files/*.sorted.bam
+do
+    sample=$(basename "$file" .sorted.bam)
+
+    gatk MarkDuplicates \
+        -I "$file" \
+        -O 09_markduplicates/${sample}.markdup.bam \
+        -M 09_markduplicates/${sample}_duplication_metrics.txt \
+        --REMOVE_DUPLICATES true
+done
+
+echo "Duplicate removal completed."
+#####################################################################
+
+
