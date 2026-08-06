@@ -70,5 +70,10 @@ done
 
 echo "All deduplicated BAM files indexed successfully."
 ##############################################################
+### Calling VCF (variant call format) files
+#########################################################################
+
+
+10_variants/strelka_output/runWorkflow.py -m local -j 32
 
 
