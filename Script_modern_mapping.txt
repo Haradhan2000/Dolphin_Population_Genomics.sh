@@ -53,6 +53,7 @@ do
 
     bwa mem \
         -t 32 \
+        -R "@RG\tID:${sample}\tSM:${sample}\tLB:lib1\tPL:ILLUMINA\tPU:unit1" \
         ~/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa \
         "$file1" \
         "$file2" \
