@@ -81,3 +81,32 @@ done
 
 echo "All SAM files converted to sorted BAM successfully."
 #################################################################################
+### Indexing BAM
+############################################################
+for file in 05_bam_files/*.sorted.bam
+do
+    echo "Indexing $(basename "$file")..."
+    samtools index -@ 32 "$file"
+done
+
+echo "All BAM files indexed successfully."
+############################################################
+### Mapping statistics using Qualimap
+############################################################
+
+for file in 05_bam_files/*.sorted.bam
+do
+    sample=$(basename "$file" .sorted.bam)
+
+    echo "Running Qualimap for ${sample}..."
+
+    qualimap bamqc \
+        -bam "$file" \
+        -outdir 06_mapping_statistics/${sample}_qualimap \
+        -nt 32
+
+    echo "${sample} completed."
+done
+
+echo "Qualimap analysis completed."
+#####################################################################
