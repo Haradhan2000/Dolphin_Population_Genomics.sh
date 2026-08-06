@@ -74,10 +74,10 @@ echo "All deduplicated BAM files indexed successfully."
 ### Calling VCF (variant call format) files
 #########################################################################
 configureStrelkaGermlineWorkflow.py \
-    --bam 09_markduplicates/SRR11431927_deduplicated.bam \
-    --bam 09_markduplicates/SRR13005646_deduplicated.bam \
-    --bam 09_markduplicates/SRR33006009_deduplicated.bam \
-    --bam 09_markduplicates/SRR39498552_deduplicated.bam \
+    --bam 09_markduplicates/SRR11431927.markdup.bam \
+    --bam 09_markduplicates/SRR13005646.markdup.bam \
+    --bam 09_markduplicates/SRR33006009.markdup.bam \
+    --bam 09_markduplicates/SRR39498552.markdup.bam \
     --referenceFasta ~/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa \
     --runDir 10_variants/strelka_output
 
