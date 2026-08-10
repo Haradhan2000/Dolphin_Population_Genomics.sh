@@ -1,1 +1,58 @@
+####################################
+#!/bin/bash
 
+cd ~/modern_wgs_dolphins
+
+REF=~/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa
+
+for sample in SRR11431927 SRR13005646 SRR33006009 SRR39498552
+do
+
+echo "======================================"
+echo "Processing ${sample}"
+echo "======================================"
+
+mkdir -p 11_heterozygosity/${sample}
+
+# Create BAM list
+echo "09_markduplicates/${sample}.markdup.bam" \
+> 11_heterozygosity/${sample}/${sample}.list
+
+# Generate SAF
+angsd \
+    -bam 11_heterozygosity/${sample}/${sample}.list \
+    -ref ${REF} \
+    -anc ${REF} \
+    -out 11_heterozygosity/${sample}/${sample} \
+    -doSaf 1 \
+    -GL 1 \
+    -minMapQ 30 \
+    -minQ 20 \
+    -remove_bads 1 \
+    -uniqueOnly 1 \
+    -doCounts 1 \
+    -P 8
+
+# Estimate SFS
+realSFS \
+    11_heterozygosity/${sample}/${sample}.saf.idx \
+    > 11_heterozygosity/${sample}/${sample}.sfs
+
+# Calculate theta
+realSFS saf2theta \
+    11_heterozygosity/${sample}/${sample}.saf.idx \
+    -sfs 11_heterozygosity/${sample}/${sample}.sfs \
+    -outname 11_heterozygosity/${sample}/${sample}
+
+# Calculate theta statistics
+thetaStat do_stat \
+    11_heterozygosity/${sample}/${sample}.thetas.idx
+
+echo "${sample} completed."
+
+done
+
+echo "======================================"
+echo "All samples finished"
+echo "======================================"
+##################################################################################
