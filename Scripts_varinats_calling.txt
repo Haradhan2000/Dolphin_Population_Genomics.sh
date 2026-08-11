@@ -70,4 +70,13 @@ do
             print "NA"
     }' 11_heterozygosity/${sample}/${sample}.thetas.idx.pestPG
 done
-################################################################3
+################################################################
+### Create the indel-only VCF
+################################################################
+vcftools \
+--gzvcf ~/modern_wgs_dolphins/10_variants/strelka_output/results/variants/variants.vcf.gz \
+--keep-only-indels \
+--recode \
+--recode-INFO-all \
+--out indels
+########################################################################
