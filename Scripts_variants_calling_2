@@ -104,23 +104,3 @@ angsd \
 
 done
 ##############################################################################
-### 10. Generate the SFS and calculate nucleotide diversity
-### Generating the SAF files, use `realSFS` to estimate the site-frequency spectrum and then calculate Theta-P (π).
-
-#!bash
-# SFS
-realSFS \
-~/modern_wgs_dolphins/11_heterozygosity_autosomes/${sample}/${sample}.saf.idx \
-> ~/modern_wgs_dolphins/11_heterozygosity_autosomes/${sample}/${sample}.sfs
-###########################################################################
-# Theta statistics
-#!bash
-realSFS saf2theta \
-~/modern_wgs_dolphins/11_heterozygosity_autosomes/${sample}/${sample}.saf.idx \
--outname ~/modern_wgs_dolphins/11_heterozygosity_autosomes/${sample}/${sample}
-################################################################################
-# Estimate Theta-P (π)
-#!bash
-thetaStat do_stat \
-~/modern_wgs_dolphins/11_heterozygosity_autosomes/${sample}/${sample}.thetas.idx
-#######################################################################################
