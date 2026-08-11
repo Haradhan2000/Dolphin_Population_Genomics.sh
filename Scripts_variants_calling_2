@@ -1,10 +1,8 @@
+#################################################
 # Exact Indel Exclusion and ANGSD Analysis
+### 1. Extract indels from the Strelka VCF ans creats an indel-only VCF
 
-### 1. Extract indels from the Strelka VCF
-
-Extract all indel variants from the Strelka VCF. This creates an indel-only VCF.
-
-```bash
+#!bash
 vcftools \
 --gzvcf ~/modern_wgs_dolphins/10_variants/strelka_output/results/variants/variants.vcf.gz \
 --keep-only-indels \
