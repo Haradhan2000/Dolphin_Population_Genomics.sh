@@ -56,3 +56,18 @@ echo "======================================"
 echo "All samples finished"
 echo "======================================"
 ##################################################################################
+for sample in SRR11431927 SRR13005646 SRR33006009 SRR39498552
+do
+    echo -n "${sample} π = "
+    awk 'NR>1 && $14 ~ /^[0-9]+([.][0-9]+)?$/ && $7 ~ /^-?[0-9]+([.][0-9]+)?$/ {
+        sumPi += $7
+        sumSites += $14
+    }
+    END {
+        if (sumSites > 0)
+            print sumPi/sumSites
+        else
+            print "NA"
+    }' 11_heterozygosity/${sample}/${sample}.thetas.idx.pestPG
+done
+################################################################3
