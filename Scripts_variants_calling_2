@@ -1,6 +1,6 @@
 #################################################
-# Exact Indel Exclusion and ANGSD Analysis
-### 1. Extract indels from the Strelka VCF ans creats an indel-only VCF
+# 1. Exact Indel Exclusion and ANGSD Analysis
+### Extract indels from the Strelka VCF ans creats an indel-only VCF
 
 #!bash
 vcftools \
@@ -9,15 +9,12 @@ vcftools \
 --recode \
 --recode-INFO-all \
 --out ~/modern_wgs_dolphins/12_autosome/indels
-```
-
----
+#########################################################################
 
 ### 2. Define exact indel-affected regions
+## Convert each indel into a BED interval using its exact reference span (`POS` and `REF`).
 
-Convert each indel into a BED interval using its exact reference span (`POS` and `REF`).
-
-```bash
+#!bash
 awk '!/^#/ {
 start = $2 - 1
 end = start + length($4)
@@ -25,89 +22,62 @@ print $1 "\t" start "\t" end
 }' \
 ~/modern_wgs_dolphins/12_autosome/indels.recode.vcf \
 > ~/modern_wgs_dolphins/12_autosome/indels_exact.bed
-```
-
----
-
+#################################################################
 ### 3. Sort indel intervals
+## Sort the indel intervals by chromosome and genomic position.
 
-Sort the indel intervals by chromosome and genomic position.
-
-```bash
+#!bash
 sort -k1,1 -k2,2n \
 ~/modern_wgs_dolphins/12_autosome/indels_exact.bed \
 > ~/modern_wgs_dolphins/12_autosome/indels_exact.sorted.bed
-```
-
----
-
+#######################################################################
 ### 4. Merge overlapping/touching indel intervals
+### Merge overlapping or directly adjacent indel intervals so that each affected region is represented once.
 
-Merge overlapping or directly adjacent indel intervals so that each affected region is represented once.
-
-```bash
+#!bash
 bedtools merge \
 -i ~/modern_wgs_dolphins/12_autosome/indels_exact.sorted.bed \
 > ~/modern_wgs_dolphins/12_autosome/indels_exact_merged.bed
-```
-
----
-
+###########################################################################
 ### 5. Create the FASTA index
+### Create a FASTA index to obtain the length of each chromosome.
 
-Create a FASTA index to obtain the length of each chromosome.
-
-```bash
+#!bash
 samtools faidx ~/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa
-```
-
----
+#####################################################################
 
 ### 6. Create the 21-autosome BED file
+### Convert the 21 chromosome names in `autosomes.txt` into BED intervals representing the complete length of each autosome.
 
-Convert the 21 chromosome names in `autosomes.txt` into BED intervals representing the complete length of each autosome.
-
-```bash
+#!bash
 awk 'NR==FNR{a[$1]=1; next} $1 in a {
 print $1 "\t0\t" $2
 }' \
 ~/modern_wgs_dolphins/12_autosome/autosomes.txt \
 ~/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa.fai \
 > ~/modern_wgs_dolphins/12_autosome/autosomes.bed
-```
-
----
-
+#############################################################
 ### 7. Remove exact indel-affected regions
+#### Subtract the exact indel-affected regions from the 21 autosomes. The resulting file contains only the genomic regions that will be analyzed.
 
-Subtract the exact indel-affected regions from the 21 autosomes. The resulting file contains only the genomic regions that will be analyzed.
-
-```bash
+#!bash
 bedtools subtract \
 -a ~/modern_wgs_dolphins/12_autosome/autosomes.bed \
 -b ~/modern_wgs_dolphins/12_autosome/indels_exact_merged.bed \
 > ~/modern_wgs_dolphins/12_autosome/autosomes_no_indels.bed
-```
-
----
-
+####################################################################
 ### 8. Sort the final ANGSD region file
+### Sort the final region file because ANGSD recommends a sorted `-rf` file when calculating SAF.
 
-Sort the final region file because ANGSD recommends a sorted `-rf` file when calculating SAF.
-
-```bash
+#!bash
 sort -k1,1 -k2,2n \
 ~/modern_wgs_dolphins/12_autosome/autosomes_no_indels.bed \
 > ~/modern_wgs_dolphins/12_autosome/autosomes_no_indels.sorted.bed
-```
-
----
-
+#######################################################################
 ### 9. Run ANGSD for modern samples
-
 Run the same ANGSD pipeline for all four modern samples, using only the 21 autosomes with the exact indel-affected regions excluded.
 
-```bash
+#!bash
 for sample in SRR11431927 SRR13005646 SRR33006009 SRR39498552
 do
 
@@ -133,32 +103,24 @@ angsd \
 -P 8
 
 done
-```
-
----
-
+##############################################################################
 ### 10. Generate the SFS and calculate nucleotide diversity
+### Generating the SAF files, use `realSFS` to estimate the site-frequency spectrum and then calculate Theta-P (π).
 
-After ANGSD finishes generating the SAF files, use `realSFS` to estimate the site-frequency spectrum and then calculate Theta-P (π).
-
-```bash
+#!bash
 # SFS
 realSFS \
 ~/modern_wgs_dolphins/11_heterozygosity_autosomes/${sample}/${sample}.saf.idx \
 > ~/modern_wgs_dolphins/11_heterozygosity_autosomes/${sample}/${sample}.sfs
-```
-
-```bash
+###########################################################################
 # Theta statistics
+#!bash
 realSFS saf2theta \
 ~/modern_wgs_dolphins/11_heterozygosity_autosomes/${sample}/${sample}.saf.idx \
 -outname ~/modern_wgs_dolphins/11_heterozygosity_autosomes/${sample}/${sample}
-```
-
-```bash
+################################################################################
 # Estimate Theta-P (π)
+#!bash
 thetaStat do_stat \
 ~/modern_wgs_dolphins/11_heterozygosity_autosomes/${sample}/${sample}.thetas.idx
-```
-
-**Note:** Steps 10 should be run after confirming that all four ANGSD SAF analyses completed successfully.
+#######################################################################################
