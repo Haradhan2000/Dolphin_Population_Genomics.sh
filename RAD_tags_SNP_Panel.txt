@@ -40,11 +40,22 @@ wc -l 02_analysis/RAD_tags_central_base.txt
 # Distribution of the central nucleotide
 cut -d'|' -f2 02_analysis/RAD_tags_central_base.txt | sort | uniq -c
 ########################################################################
-### Ambiguous base (N)
+# 04. Check ambiguous bases (N)
+# ============================================================
+
+# Count RAD tags containing at least one ambiguous base (N)
+# anywhere in the RAD-tag sequence.
+
+# Result:
+# RAD tags containing N: 32
+
+# Check whether N occurs at the designated SNP position (101).
+
 awk '
+BEGIN { count=0 }
 /^>/ {
     if (seq != "") {
-        if (seq ~ /N/) count++
+        if (substr(seq,101,1) == "N") count++
     }
     seq=""
     next
@@ -54,7 +65,10 @@ awk '
     seq=seq $0
 }
 END {
-    if (seq ~ /N/) count++
-    print "RAD tags containing N:", count
+    if (seq != "" && substr(seq,101,1) == "N") count++
+    print "RAD tags with N at SNP position 101:", count
 }' 01_input/NEW_ORCAELLA_RADs.fasta
-############################################################################
+
+# Result:
+# RAD tags with N at SNP position 101: 0
+##############################################################3
