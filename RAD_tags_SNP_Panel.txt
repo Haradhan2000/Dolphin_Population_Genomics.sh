@@ -25,24 +25,18 @@ sort | uniq -c
 # SNP position = (201 + 1) / 2 = 101
 ################################################################
 03. Extract the central SNP nucleotide from each RAD tag
-awk '
-/^>/ {
-    if (seq != "") {
-        mid = substr(seq,101,1)
-        print id, mid
-    }
-    id=$0
-    sub(/^>/,"",id)
-    seq=""
-    next
-}
-{
-    seq=seq $0
-}
-END {
-    if (seq != "") {
-        mid = substr(seq,101,1)
-        print id, mid
-    }
-}' 01_input/NEW_ORCAELLA_RADs.fasta | head
+python -c 'from pathlib import Path; lines=Path("01_input/NEW_ORCAELLA_RADs.fasta").read_text().splitlines(); out=[]; i=0;
+while i<len(lines):
+    if lines[i].startswith(">"):
+        out.append(lines[i][1:]+"|"+lines[i+1][100])
+        i+=2
+    else:
+        i+=1
+Path("02_analysis/RAD_tags_central_base.txt").write_text("\n".join(out)+"\n")'
+
+# Number of RAD loci extracted
+wc -l 02_analysis/RAD_tags_central_base.txt
+
+# Distribution of the central nucleotide
+cut -d'|' -f2 02_analysis/RAD_tags_central_base.txt | sort | uniq -c
 ########################################################################
