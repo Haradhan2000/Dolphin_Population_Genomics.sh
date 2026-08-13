@@ -24,3 +24,25 @@ sort | uniq -c
 # For a 201-bp sequence:
 # SNP position = (201 + 1) / 2 = 101
 ################################################################
+03. Extract the central SNP nucleotide from each RAD tag
+awk '
+/^>/ {
+    if (seq != "") {
+        mid = substr(seq,101,1)
+        print id, mid
+    }
+    id=$0
+    sub(/^>/,"",id)
+    seq=""
+    next
+}
+{
+    seq=seq $0
+}
+END {
+    if (seq != "") {
+        mid = substr(seq,101,1)
+        print id, mid
+    }
+}' 01_input/NEW_ORCAELLA_RADs.fasta | head
+########################################################################
