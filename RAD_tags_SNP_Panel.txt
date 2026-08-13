@@ -1,1 +1,3 @@
-
+################################
+### Number of RAD loci/tags
+grep -c "^>" 01_input/NEW_ORCAELLA_RADs.fasta
