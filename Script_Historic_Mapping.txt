@@ -35,8 +35,14 @@ AdapterRemoval \
 --minadapteroverlap 1
 
 done
-######################################################################33
-
+######################################################################
+# QC chceck and generate multiQC of trimmed files 
+######################################################################
+fastqc 03_trimmed/*.gz \
+-o 02_fastqc_reports
+cd 02_fastqc_reports
+multiqc .
+#####################################################################
 
 for sample in DP_1 DP_2
 do
