@@ -1,9 +1,10 @@
 #################################################
 # Check FASTQ file sizes
 ls -lh *.fastq.gz
-###################################################################################################################################################################
+##################################################
 Data processing and pre-mapping
-################################################################################################################################################ QC chceck and generate multiQC
+#################################################
+# QC chceck and generate multiQC
 ###########################################################################
 fastqc 01_raw_data/*.fastq.gz \
     -o 02_fastqc_reports
@@ -18,9 +19,9 @@ for sample in DP_1 DP_2
 do
 
 AdapterRemoval \
---file1 ${sample}_*_R1_001.fastq.gz \
---file2 ${sample}_*_R2_001.fastq.gz \
---basename ~/Dolphin_WGS_Analysis/analysis_output/trimmed/${sample} \
+--file1 01_raw_data/${sample}_*_R1_001.fastq.gz \
+--file2 01_raw_data/${sample}_*_R2_001.fastq.gz \
+--basename 03_trimmed/${sample} \
 --gzip \
 --threads 8 \
 --qualitymax 41 \
@@ -34,8 +35,8 @@ AdapterRemoval \
 --minadapteroverlap 1
 
 done
+######################################################################33
 
-cd ~/Dolphin_WGS_Analysis/analysis_output/trimmed
 
 for sample in DP_1 DP_2
 do
