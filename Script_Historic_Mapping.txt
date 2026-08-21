@@ -15,7 +15,7 @@ multiqc .
 ###########################################################################
 # Adapter removal_trimming
 ############################################################################
-for sample in DP_1 DP_2
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
 AdapterRemoval \
@@ -43,8 +43,9 @@ fastqc 03_trimmed/*.gz \
 cd 02_fastqc_reports
 multiqc .
 #####################################################################
-
-for sample in DP_1 DP_2
+# Combine AdapterRemoval output files into a single trimmed FASTQ per sample
+#####################################################################
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
 echo "Combining files for ${sample}"
