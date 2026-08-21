@@ -38,7 +38,7 @@ echo "Qualimap analysis completed."
 # Filter mapped reads
 ############################################
 
-for sample in DP_1 DP_2
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
 echo "Filtering ${sample}..."
@@ -48,11 +48,11 @@ samtools view \
 -F 4 \
 -q 30 \
 -b \
-analysis_output/sorted_bam/${sample}.sorted.bam \
-> analysis_output/sorted_bam/${sample}.filtered.bam
+05_bam_files/${sample}.sorted.bam \
+> 05_bam_files/${sample}.filtered.bam
 
 done
-
+############################################
 
 ############################################
 # Index filtered BAM files
