@@ -65,20 +65,10 @@ samtools index \
 05_bam_files/${sample}.filtered.bam
 
 done
-############################################
-# Create directories
-############################################
 
-mkdir -p analysis_output/name_sorted_bam
-mkdir -p analysis_output/fixmate_bam
-mkdir -p analysis_output/fixmate_sorted_bam
-
-
-############################################
-# Name-sort BAM files
-############################################
-
-for sample in DP_1 DP_2
+################################################################
+# Name-sort filtered BAM files for fixmate processing
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
 echo "Name sorting ${sample}"
@@ -87,11 +77,10 @@ samtools sort \
 -n \
 -@ 8 \
 -O bam \
-analysis_output/sorted_bam/${sample}.filtered.bam \
--o analysis_output/name_sorted_bam/${sample}.namesorted.bam
+05_bam_files/${sample}.filtered.bam \
+-o 05_bam_files/name_sorted_bam/${sample}.namesorted.bam
 
 done
-
 
 ############################################
 # Run fixmate
@@ -173,12 +162,5 @@ analysis_output/dedup_bam/${sample}.dedup.bam \
 
 done
 
-
 ############################################
-# Check output files
-############################################
-
-ls analysis_output/dedup_bam
-
-##############################################################################################################################################
 
