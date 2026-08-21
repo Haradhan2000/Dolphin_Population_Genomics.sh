@@ -135,31 +135,34 @@ done
 # Index deduplicated BAM files
 ############################################
 
-for sample in DP_1 DP_2
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
 echo "Indexing deduplicated ${sample}..."
 
 samtools index \
-analysis_output/dedup_bam/${sample}.dedup.bam
+09_markduplicates/${sample}.dedup.bam
 
 done
 
-
 ############################################
-# Generate mapping statistics
+# Mapping statistics using Qualimap on filtered BAM files
 ############################################
 
-for sample in DP_1 DP_2
+for file in 05_bam_files/*.filtered.bam
 do
+    sample=$(basename "$file" .filtered.bam)
 
-echo "Generating flagstat for ${sample}..."
+    echo "Running Qualimap for ${sample}..."
 
-samtools flagstat \
-analysis_output/dedup_bam/${sample}.dedup.bam \
-> analysis_output/dedup_bam/${sample}.flagstat.txt
+    qualimap bamqc \
+        --java-mem-size=16G \
+        -bam "$file" \
+        -outdir 06_mapping_statistics/${sample}_filtered_qualimap \
+        -nt 16
 
+    echo "${sample} completed."
 done
 
-############################################
-
+echo "Qualimap analysis completed."
+########################################################################
