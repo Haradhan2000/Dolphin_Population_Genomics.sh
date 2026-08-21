@@ -67,6 +67,26 @@ samtools index \
 done
 
 ################################################################
+# Mapping statistics using Qualimap on filtered BAM files
+############################################
+
+for file in 05_bam_files/*.filtered.bam
+do
+    sample=$(basename "$file" .filtered.bam)
+
+    echo "Running Qualimap for ${sample}..."
+
+    qualimap bamqc \
+        --java-mem-size=16G \
+        -bam "$file" \
+        -outdir 06_mapping_statistics/${sample}_filtered_qualimap \
+        -nt 16
+
+    echo "${sample} completed."
+done
+
+echo "Qualimap analysis completed."
+########################################################################
 # Name-sort filtered BAM files for fixmate processing
 ##################################################################
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
@@ -145,24 +165,4 @@ samtools index \
 
 done
 
-############################################
-# Mapping statistics using Qualimap on filtered BAM files
-############################################
-
-for file in 05_bam_files/*.filtered.bam
-do
-    sample=$(basename "$file" .filtered.bam)
-
-    echo "Running Qualimap for ${sample}..."
-
-    qualimap bamqc \
-        --java-mem-size=16G \
-        -bam "$file" \
-        -outdir 06_mapping_statistics/${sample}_filtered_qualimap \
-        -nt 16
-
-    echo "${sample} completed."
-done
-
-echo "Qualimap analysis completed."
-########################################################################
+########################################################3
