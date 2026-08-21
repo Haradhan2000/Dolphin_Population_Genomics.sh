@@ -61,56 +61,9 @@ done
 
 ls -lh *.trimmed_combined.fastq.gz
 ###############################################################################################################################################
-
-Data Mapping
-###################################################################################################################################################################################
-# Activate environment
-############################################
-
-conda activate dolphin_wgs
-
-
-############################################
-# Install mapping tools (run once)
-############################################
-
-conda install -c bioconda bwa samtools -y
-
-
-############################################
-# Create output folders
-############################################
-
-mkdir -p ~/Dolphin_WGS_Analysis/analysis_output/{mapped,sorted_bam,dedup_bam}
-
-
-############################################
-# Move to reference genome folder (NA)
-############################################
-
-cd ~/Dolphin_WGS_Analysis/reference_genome
-
-# Check reference genome file name
-ls
-
-
-############################################
-# Index reference genome (run once only) (NA)
-############################################
-
-bwa index dolphin_reference.fasta
-
-samtools faidx dolphin_reference.fasta
-
-
-############################################
-# Move to project directory
-############################################
-
-cd ~/Dolphin_WGS_Analysis
-
-
-for sample in DP_1 DP_2
+#Data Mapping (Reference genome: 07_indexes/dolphin_chr.fa)
+###############################################################################################################################################
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
 echo "Mapping ${sample}"
@@ -118,13 +71,11 @@ echo "Mapping ${sample}"
 bwa mem \
 -t 8 \
 07_indexes/dolphin_chr.fa \
-analysis_output/trimmed/${sample}.pair1.truncated.gz \
-analysis_output/trimmed/${sample}.pair2.truncated.gz \
-> analysis_output/mapped/${sample}.sam
+03_trimmed/${sample}.pair1.truncated.gz \
+03_trimmed/${sample}.pair2.truncated.gz \
+> 04_mapping/${sample}.sam
 
 done
-
-
 ############################################
 # Index sorted BAM files
 ############################################
