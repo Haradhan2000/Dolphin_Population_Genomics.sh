@@ -53,21 +53,18 @@ samtools view \
 
 done
 ############################################
-
-############################################
 # Index filtered BAM files
 ############################################
 
-for sample in DP_1 DP_2
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
 echo "Indexing filtered ${sample}..."
 
 samtools index \
-analysis_output/sorted_bam/${sample}.filtered.bam
+05_bam_files/${sample}.filtered.bam
 
 done
-
 ############################################
 # Create directories
 ############################################
