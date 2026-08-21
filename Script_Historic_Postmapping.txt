@@ -94,8 +94,8 @@ echo "Running fixmate for ${sample}"
 
 samtools fixmate \
 -m \
-analysis_output/name_sorted_bam/${sample}.namesorted.bam \
-analysis_output/fixmate_bam/${sample}.fixmate.bam
+05_bam_files/name_sorted_bam/${sample}.namesorted.bam \
+05_bam_files/fixmate_bam/${sample}.fixmate.bam
 
 done
 ############################################
