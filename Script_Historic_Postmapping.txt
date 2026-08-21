@@ -102,37 +102,23 @@ done
 # Coordinate sort fixmate BAM files
 ############################################
 
-############################################
-# Run fixmate
-############################################
-
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
-echo "Running fixmate for ${sample}"
-
-samtools fixmate \
--m \
-analysis_output/name_sorted_bam/${sample}.namesorted.bam \
-analysis_output/fixmate_bam/${sample}.fixmate.bam
-
-done
-############################################
-
-echo "Sorting fixmate BAM for ${sample}"
+echo "Coordinate sorting ${sample}"
 
 samtools sort \
 -@ 8 \
 -O bam \
-analysis_output/fixmate_bam/${sample}.fixmate.bam \
--o analysis_output/fixmate_sorted_bam/${sample}.fixmate.sorted.bam
+05_bam_files/fixmate_bam/${sample}.fixmate.bam \
+-o 05_bam_files/fixmate_sorted_bam/${sample}.fixmate.sorted.bam
 
 done
-
+############################################
 # Remove PCR duplicates
 ############################################
 
-for sample in DP_1 DP_2
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
 echo "Removing duplicates from ${sample}"
@@ -140,8 +126,8 @@ echo "Removing duplicates from ${sample}"
 samtools markdup \
 -r \
 -s \
-analysis_output/fixmate_sorted_bam/${sample}.fixmate.sorted.bam \
-analysis_output/dedup_bam/${sample}.dedup.bam
+05_bam_files/fixmate_sorted_bam/${sample}.fixmate.sorted.bam \
+09_markduplicates/${sample}.dedup.bam
 
 done
 
