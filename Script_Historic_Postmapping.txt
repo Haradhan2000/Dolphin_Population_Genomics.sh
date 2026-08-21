@@ -14,23 +14,27 @@ samtools sort \
 -o 05_bam_files/${sample}.sorted.bam
 
 done
-##################################################################
-# Index sorted BAM files
+############################################
+# Mapping statistics using Qualimap
 ############################################
 
-for sample in DP_1 DP_2
+for file in 05_bam_files/*.sorted.bam
 do
+    sample=$(basename "$file" .sorted.bam)
 
-echo "Sorting ${sample}"
+    echo "Running Qualimap for ${sample}..."
 
-samtools sort \
--@ 8 \
--O bam \
-analysis_output/mapped/${sample}.sam \
--o analysis_output/sorted_bam/${sample}.sorted.bam
+    qualimap bamqc \
+        --java-mem-size=16G \
+        -bam "$file" \
+        -outdir 06_mapping_statistics/${sample}_qualimap \
+        -nt 16
 
+    echo "${sample} completed."
 done
-############################################
+
+echo "Qualimap analysis completed."
+##################################################################
 # Filter mapped reads
 ############################################
 
