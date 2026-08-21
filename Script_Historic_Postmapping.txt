@@ -15,4 +15,169 @@ samtools sort \
 
 done
 ##################################################################
+# Index sorted BAM files
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Sorting ${sample}"
+
+samtools sort \
+-@ 8 \
+-O bam \
+analysis_output/mapped/${sample}.sam \
+-o analysis_output/sorted_bam/${sample}.sorted.bam
+
+done
+############################################
+# Filter mapped reads
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Filtering ${sample}..."
+
+samtools view \
+-h \
+-F 4 \
+-q 30 \
+-b \
+analysis_output/sorted_bam/${sample}.sorted.bam \
+> analysis_output/sorted_bam/${sample}.filtered.bam
+
+done
+
+
+############################################
+# Index filtered BAM files
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Indexing filtered ${sample}..."
+
+samtools index \
+analysis_output/sorted_bam/${sample}.filtered.bam
+
+done
+
+############################################
+# Create directories
+############################################
+
+mkdir -p analysis_output/name_sorted_bam
+mkdir -p analysis_output/fixmate_bam
+mkdir -p analysis_output/fixmate_sorted_bam
+
+
+############################################
+# Name-sort BAM files
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Name sorting ${sample}"
+
+samtools sort \
+-n \
+-@ 8 \
+-O bam \
+analysis_output/sorted_bam/${sample}.filtered.bam \
+-o analysis_output/name_sorted_bam/${sample}.namesorted.bam
+
+done
+
+
+############################################
+# Run fixmate
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Running fixmate for ${sample}"
+
+samtools fixmate \
+-m \
+analysis_output/name_sorted_bam/${sample}.namesorted.bam \
+analysis_output/fixmate_bam/${sample}.fixmate.bam
+
+done
+
+
+############################################
+# Coordinate sort fixmate BAM files
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Sorting fixmate BAM for ${sample}"
+
+samtools sort \
+-@ 8 \
+-O bam \
+analysis_output/fixmate_bam/${sample}.fixmate.bam \
+-o analysis_output/fixmate_sorted_bam/${sample}.fixmate.sorted.bam
+
+done
+
+# Remove PCR duplicates
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Removing duplicates from ${sample}"
+
+samtools markdup \
+-r \
+-s \
+analysis_output/fixmate_sorted_bam/${sample}.fixmate.sorted.bam \
+analysis_output/dedup_bam/${sample}.dedup.bam
+
+done
+
+############################################
+# Index deduplicated BAM files
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Indexing deduplicated ${sample}..."
+
+samtools index \
+analysis_output/dedup_bam/${sample}.dedup.bam
+
+done
+
+
+############################################
+# Generate mapping statistics
+############################################
+
+for sample in DP_1 DP_2
+do
+
+echo "Generating flagstat for ${sample}..."
+
+samtools flagstat \
+analysis_output/dedup_bam/${sample}.dedup.bam \
+> analysis_output/dedup_bam/${sample}.flagstat.txt
+
+done
+
+
+############################################
+# Check output files
+############################################
+
+ls analysis_output/dedup_bam
+
+##############################################################################################################################################
 
