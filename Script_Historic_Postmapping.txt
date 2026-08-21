@@ -87,7 +87,7 @@ done
 # Run fixmate
 ############################################
 
-for sample in DP_1 DP_2
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
 echo "Running fixmate for ${sample}"
@@ -98,14 +98,26 @@ analysis_output/name_sorted_bam/${sample}.namesorted.bam \
 analysis_output/fixmate_bam/${sample}.fixmate.bam
 
 done
-
-
 ############################################
 # Coordinate sort fixmate BAM files
 ############################################
 
-for sample in DP_1 DP_2
+############################################
+# Run fixmate
+############################################
+
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
+
+echo "Running fixmate for ${sample}"
+
+samtools fixmate \
+-m \
+analysis_output/name_sorted_bam/${sample}.namesorted.bam \
+analysis_output/fixmate_bam/${sample}.fixmate.bam
+
+done
+############################################
 
 echo "Sorting fixmate BAM for ${sample}"
 
