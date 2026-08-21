@@ -1,1 +1,191 @@
+###############################################################################
+# Dolphin chromosome-scale genome scaffolding pipeline
+# Using RaGOO
+###############################################################################
 
+set -e
+set -o pipefail
+
+###############################################################################
+# INPUT FILES
+###############################################################################
+
+QUERY="reference_genome/GCA_054084255.1_GACMC_Pgan_genomic.fna"
+
+REFERENCE="reference_genome/GCF_011762595.2_mTurTru1.mat.Y_genomic.fna"
+
+THREADS=20
+
+###############################################################################
+# CREATE OUTPUT DIRECTORIES
+###############################################################################
+
+mkdir -p \
+01_QC_before \
+02_filtered \
+03_ragoo \
+04_QC_after \
+05_synteny \
+06_final_reference \
+07_indexes \
+08_logs
+
+###############################################################################
+# STEP 1 — INITIAL QC
+###############################################################################
+
+echo "Running QUAST before scaffolding..."
+
+quast.py \
+${QUERY} \
+-o 01_QC_before/quast_before \
+-t ${THREADS} \
+2>&1 | tee 08_logs/quast_before.log
+
+echo "Running BUSCO before scaffolding..."
+
+busco \
+-i ${QUERY} \
+-o busco_before \
+-m genome \
+-l mammalia_odb10 \
+-c ${THREADS} \
+--out_path 01_QC_before \
+2>&1 | tee 08_logs/busco_before.log
+###############################################################################
+# STEP 2 — REMOVE SMALL SCAFFOLDS
+###############################################################################
+
+echo "Filtering scaffolds smaller than 5 kb..."
+
+seqkit seq \
+-m 5000 \
+${QUERY} \
+> 02_filtered/dolphin_filtered.fa
+
+###############################################################################
+# STEP 3 — RUN RAGOO
+###############################################################################
+
+ragoo.py \
+02_filtered/dolphin_filtered.fa \
+${REFERENCE} \
+-t ${THREADS} \
+-b \
+2>&1 | tee 08_logs/ragoo.log
+###############################################################################
+# STEP 4 — FINAL ASSEMBLY
+###############################################################################
+
+cp \
+03_ragoo/ragoo.fasta \
+06_final_reference/dolphin_chr.fa
+
+###############################################################################
+# STEP 5 — POST-SCAFFOLDING QC
+###############################################################################
+
+echo "Running QUAST after scaffolding..."
+
+THREADS=40
+
+quast.py \
+06_final_reference/dolphin_chr.fa \
+-o 04_QC_after/quast_after \
+-t ${THREADS} \
+2>&1 | tee 08_logs/quast_after.log
+
+echo "Running BUSCO after scaffolding..."
+
+busco \
+-i 06_final_reference/dolphin_chr.fa \
+-o busco_after \
+-m genome \
+-l mammalia_odb10 \
+-c ${THREADS} \
+--out_path 04_QC_after \
+2>&1 | tee 08_logs/busco_after.log
+
+###############################################################################
+# STEP 6 — SYNTENY VALIDATION
+###############################################################################
+
+echo "Running whole genome alignment validation..."
+
+cd 05_synteny
+
+nucmer \
+../reference_genome/GCF_011762595.2_mTurTru1.mat.Y_genomic.fna \
+../06_final_reference/dolphin_chr.fa \
+-p dolphin
+
+delta-filter \
+-1 dolphin.delta \
+> dolphin.filter.delta
+
+mummerplot \
+--fat \
+--filter \
+-p dolphin \
+dolphin.filter.delta
+
+cd ..
+###############################################################################
+# STEP 7 — COPY FINAL GENOME
+###############################################################################
+
+cp \
+06_final_reference/dolphin_chr.fa \
+07_indexes/
+
+###############################################################################
+# STEP 8 — BWA INDEX
+###############################################################################
+
+echo "Running BWA index..."
+
+bwa index \
+07_indexes/dolphin_chr.fa
+
+###############################################################################
+# STEP 9 — FASTA INDEX
+###############################################################################
+
+echo "Running samtools faidx..."
+
+samtools faidx \
+07_indexes/dolphin_chr.fa
+
+###############################################################################
+# STEP 10 — CREATE SEQUENCE DICTIONARY
+###############################################################################
+
+echo "Creating sequence dictionary..."
+
+picard CreateSequenceDictionary \
+R=07_indexes/dolphin_chr.fa \
+O=07_indexes/dolphin_chr.dict
+
+###############################################################################
+# PIPELINE COMPLETE
+###############################################################################
+
+echo "PIPELINE COMPLETED SUCCESSFULLY"
+echo "=================================================="
+
+echo ""
+echo "Final chromosome-scale genome:"
+echo "07_indexes/dolphin_chr.fa"
+
+echo ""
+echo "Indexes generated:"
+echo "07_indexes/dolphin_chr.fa.fai"
+echo "07_indexes/dolphin_chr.dict"
+echo "07_indexes/dolphin_chr.fa.bwt"
+
+echo ""
+echo "Genome is now ready for:"
+echo "- historic DNA mapping"
+echo "- SNP calling"
+echo "- population genomics"
+####################################################################################3
