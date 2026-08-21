@@ -1,10 +1,10 @@
 #################################################
-# Check FASTQ file sizes
+#1 Check FASTQ file sizes
 ls -lh *.fastq.gz
 ##################################################
 Data processing and pre-mapping
 #################################################
-# QC chceck and generate multiQC
+#2 QC chceck and generate multiQC
 ###########################################################################
 fastqc 01_raw_data/*.fastq.gz \
     -o 02_fastqc_reports
@@ -13,7 +13,7 @@ cd 02_fastqc_reports
 
 multiqc .
 ###########################################################################
-# Adapter removal_trimming
+#3 Adapter removal_trimming
 ############################################################################
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
@@ -36,14 +36,14 @@ AdapterRemoval \
 
 done
 ######################################################################
-# QC chceck and generate multiQC of trimmed files 
+#4 QC chceck and generate multiQC of trimmed files 
 ######################################################################
 fastqc 03_trimmed/*.gz \
 -o 02_fastqc_reports
 cd 02_fastqc_reports
 multiqc .
 #####################################################################
-# Combine AdapterRemoval output files into a single trimmed FASTQ per sample
+#5 Combine AdapterRemoval output files into a single trimmed FASTQ per sample
 #####################################################################
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
@@ -61,7 +61,7 @@ done
 
 ls -lh *.trimmed_combined.fastq.gz
 ###############################################################################################################################################
-#Data Mapping (Reference genome: 07_indexes/dolphin_chr.fa)
+#6 Data Mapping (Reference genome: 07_indexes/dolphin_chr.fa)
 ###############################################################################################################################################
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
