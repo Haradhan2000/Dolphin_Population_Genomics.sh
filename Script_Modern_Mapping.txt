@@ -10,9 +10,10 @@ conda activate dolphin_wgs
 conda activate fastqc
 
 fastqc \
-    01_raw_data/*.fastq \
+    01_raw_data/*.fastq.gz \
     -t 16 \
     -o 02_fastqc_reports
+
 multiqc \
     02_fastqc_reports \
     -o 02_fastqc_reports
