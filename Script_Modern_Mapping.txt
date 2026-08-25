@@ -34,12 +34,13 @@ done
 ###Fastqc reports after trimming
 #######################################################
 fastqc \
-    03_trimmed/*_val_*.fq \
-    -t 32 \
-    -o 03_trimmed && \
+    03_trimmed/*_val_*.fq.gz \
+    -t 16 \
+    -o 03_trimmed/fastqc_report && \
 multiqc \
-    03_trimmed \
-    -o 03_trimmed
+    03_trimmed/fastqc_report \
+    -o 03_trimmed/fastqc_report \
+    -n multiqc_trimming
 ####################################################
 #### Mapping 
 ############################################################
