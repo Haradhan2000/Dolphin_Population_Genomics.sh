@@ -38,12 +38,12 @@ done
 ######################################################################
 #4 QC chceck and generate multiQC of trimmed files 
 ######################################################################
-fastqc 03_trimmed/*.gz \
--o 03_trimmed/fastqc_report
+fastqc 03_trimmed/*.pair1.truncated.gz \
+       03_trimmed/*.pair2.truncated.gz \
+       03_trimmed/*.collapsed.gz \
+       03_trimmed/*.collapsed.truncated.gz \
+       -o 03_trimmed/fastqc_report
 
-multiqc 03_trimmed/fastqc_report \
--o 03_trimmed/fastqc_report \
--n multiqc_trimming
 #####################################################################
 #5 Combine AdapterRemoval output files into a single trimmed FASTQ per sample
 #####################################################################
