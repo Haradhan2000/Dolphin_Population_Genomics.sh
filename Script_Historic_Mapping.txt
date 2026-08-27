@@ -79,7 +79,7 @@ do
         -n 0.01 \
         -l 1024 \
         -o 2 \
-        07_indexes/dolphin_chr.fa \
+        /home/haradhan/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa \
         03_trimmed/${sample}.trimmed_combined.fastq.gz \
         > 04_mapping/${sample}.sai
 
