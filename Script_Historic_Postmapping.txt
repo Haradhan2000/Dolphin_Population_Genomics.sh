@@ -95,7 +95,7 @@ do
         -r \
         -s \
         05_bam_files/${sample}.filtered.bam \
-        05_bam_files/${sample}.filtered.dedup.bam
+        09_markduplicates/${sample}.filtered.dedup.bam
 
 done
 ############################################
@@ -108,45 +108,41 @@ do
     echo "Indexing deduplicated ${sample}..."
 
     samtools index \
-        05_bam_files/${sample}.filtered.dedup.bam
+        09_markduplicates/${sample}.filtered.dedup.bam
 
 done
 #################################################
 #9.Assessment of DNA damage using DamageProfiler
 ############################################
-
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
     echo "Running DamageProfiler for ${sample}..."
 
-    mkdir -p 09_damage_profiler/${sample}
+    mkdir -p 07_mapdamage/${sample}
 
     damageprofiler \
-        -i 05_bam_files/${sample}.filtered.dedup.bam \
+        -i 09_markduplicates/${sample}.filtered.dedup.bam \
         -r /home/haradhan/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa \
         -t 2 \
-        -o 09_damage_profiler/${sample} \
+        -o 07_mapdamage/${sample} \
         -yaxis_dp_max 0.30
 
 done
 ######################################################
-############################################
 # 10. Assess BAM quality using Qualimap
 ############################################
-
-mkdir -p qualimap_results
-
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
     echo "Running Qualimap BAMQC for ${sample}..."
 
     qualimap bamqc \
-        -bam 05_bam_files/${sample}.filtered.dedup.bam \
+        -bam 09_markduplicates/${sample}.filtered.dedup.bam \
         -nt 2 \
-        -outdir qualimap_results/${sample} \
+        -outdir 06_mapping_statistics/qualimap_final/${sample} \
         -outformat HTML
 
 done
+#############################################################
 ###################################################################
