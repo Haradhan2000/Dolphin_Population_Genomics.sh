@@ -27,7 +27,7 @@ do
 
 done
 ############################################
-#3 Index filtered BAM files
+#3 # 3. Index sorted BAM files
 ############################################
 
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
