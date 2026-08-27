@@ -27,7 +27,7 @@ do
 
 done
 ############################################
-#4 Index filtered BAM files
+#3 Index filtered BAM files
 ############################################
 
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
@@ -58,7 +58,7 @@ done
 
 ################################################################
 ############################################
-# 4. Filter BAM files
+# 5. Filter BAM files
 ############################################
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
@@ -75,7 +75,7 @@ do
 
 done
 ############################################
-# 5. Index filtered BAM files
+# 6. Index filtered BAM files
 ############################################
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
@@ -88,7 +88,7 @@ do
 done
 ############################################
 ############################################
-# 6. Remove PCR duplicates
+# 7. Remove PCR duplicates
 ############################################
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
@@ -104,7 +104,7 @@ do
 done
 ############################################
 ############################################
-# 7. Index deduplicated BAM files
+# 8. Index deduplicated BAM files
 ############################################
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
@@ -116,7 +116,7 @@ do
 
 done
 #################################################
-Assessment of DNA damage using DamageProfiler
+#9.Assessment of DNA damage using DamageProfiler
 ############################################
 
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
@@ -136,7 +136,7 @@ do
 done
 ######################################################
 ############################################
-# 9. Assess BAM quality using Qualimap
+# 10. Assess BAM quality using Qualimap
 ############################################
 
 mkdir -p qualimap_results
