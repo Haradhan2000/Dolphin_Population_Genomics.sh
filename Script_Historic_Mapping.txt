@@ -72,14 +72,16 @@ ls -lh *.trimmed_combined.fastq.gz
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
-echo "Mapping ${sample}"
+    echo "Running bwa aln for ${sample}..."
 
-bwa mem \
--t 8 \
-07_indexes/dolphin_chr.fa \
-03_trimmed/${sample}.pair1.truncated.gz \
-03_trimmed/${sample}.pair2.truncated.gz \
-> 04_mapping/${sample}.sam
+    bwa aln \
+        -t 8 \
+        -n 0.01 \
+        -l 1024 \
+        -o 2 \
+        07_indexes/dolphin_chr.fa \
+        03_trimmed/${sample}.trimmed_combined.fastq.gz \
+        > 04_mapping/${sample}.sai
 
 done
 ############################################
