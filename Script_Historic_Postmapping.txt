@@ -1,55 +1,29 @@
 ############################################
-#1 Convert SAM to sorted BAM
+#1 Generating SAM files 
 ############################################
-
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
+    echo "Generating SAM for ${sample}..."
 
-echo "Sorting ${sample}"
-
-samtools sort \
--@ 8 \
--O bam \
-04_mapping/${sample}.sam \
--o 05_bam_files/${sample}.sorted.bam
+    bwa samse \
+        /home/haradhan/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa \
+        04_mapping/${sample}.sai \
+        03_trimmed/${sample}.trimmed_combined.fastq.gz \
+        > 04_mapping/${sample}.sam
 
 done
 ############################################
-#2 Mapping statistics using Qualimap
+#2 Convert SAM to sorted BAM
 ############################################
-
-for file in 05_bam_files/*.sorted.bam
-do
-    sample=$(basename "$file" .sorted.bam)
-
-    echo "Running Qualimap for ${sample}..."
-
-    qualimap bamqc \
-        --java-mem-size=16G \
-        -bam "$file" \
-        -outdir 06_mapping_statistics/${sample}_qualimap \
-        -nt 16
-
-    echo "${sample} completed."
-done
-
-echo "Qualimap analysis completed."
-##################################################################
-#3 Filter mapped reads
-############################################
-
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
-echo "Filtering ${sample}..."
+    echo "Sorting ${sample}..."
 
-samtools view \
--h \
--F 4 \
--q 30 \
--b \
-05_bam_files/${sample}.sorted.bam \
-> 05_bam_files/${sample}.filtered.bam
+    samtools sort \
+        -O bam \
+        04_mapping/${sample}.sam \
+        -o 05_bam_files/${sample}.bam
 
 done
 ############################################
@@ -67,102 +41,84 @@ samtools index \
 done
 
 ################################################################
-#5 Mapping statistics using Qualimap on filtered BAM files
 ############################################
-
-for file in 05_bam_files/*.filtered.bam
-do
-    sample=$(basename "$file" .filtered.bam)
-
-    echo "Running Qualimap for ${sample}..."
-
-    qualimap bamqc \
-        --java-mem-size=16G \
-        -bam "$file" \
-        -outdir 06_mapping_statistics/${sample}_filtered_qualimap \
-        -nt 16
-
-    echo "${sample} completed."
-done
-
-echo "Qualimap analysis completed."
-########################################################################
-#6 Name-sort filtered BAM files for fixmate processing
-##################################################################
+# 4. Filter BAM files
+############################################
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
-echo "Name sorting ${sample}"
+    echo "Filtering ${sample}..."
 
-samtools sort \
--n \
--@ 8 \
--O bam \
-05_bam_files/${sample}.filtered.bam \
--o 05_bam_files/name_sorted_bam/${sample}.namesorted.bam
+    samtools view \
+        -h \
+        -F 4 \
+        -q 30 \
+        -b \
+        05_bam_files/${sample}.bam \
+        > 05_bam_files/${sample}.filtered.bam
 
 done
-
 ############################################
-#7 Run fixmate
+# 5. Index filtered BAM files
 ############################################
-
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
-echo "Running fixmate for ${sample}"
+    echo "Indexing filtered ${sample}..."
 
-samtools fixmate \
--m \
-05_bam_files/name_sorted_bam/${sample}.namesorted.bam \
-05_bam_files/fixmate_bam/${sample}.fixmate.bam
+    samtools index \
+        05_bam_files/${sample}.filtered.bam
 
 done
 ############################################
-#8 Coordinate sort fixmate BAM files
 ############################################
-
+# 6. Remove PCR duplicates
+############################################
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
-echo "Coordinate sorting ${sample}"
+    echo "Removing duplicates for ${sample}..."
 
-samtools sort \
--@ 8 \
--O bam \
-05_bam_files/fixmate_bam/${sample}.fixmate.bam \
--o 05_bam_files/fixmate_sorted_bam/${sample}.fixmate.sorted.bam
+    samtools markdup \
+        -r \
+        -s \
+        05_bam_files/${sample}.filtered.bam \
+        05_bam_files/${sample}.filtered.dedup.bam
 
 done
 ############################################
-#9 Remove PCR duplicates
+############################################
+# 7. Index deduplicated BAM files
+############################################
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
+do
+
+    echo "Indexing deduplicated ${sample}..."
+
+    samtools index \
+        05_bam_files/${sample}.filtered.dedup.bam
+
+done
+#################################################
+Assessment of DNA damage using DamageProfiler
+#################################################
+############################################
+# 8. Assess post-mortem DNA damage using DamageProfiler
 ############################################
 
 for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
 do
 
-echo "Removing duplicates from ${sample}"
+    echo "Running DamageProfiler for ${sample}..."
 
-samtools markdup \
--r \
--s \
-05_bam_files/fixmate_sorted_bam/${sample}.fixmate.sorted.bam \
-09_markduplicates/${sample}.dedup.bam
+    mkdir -p 09_damage_profiler/${sample}
 
-done
-
-############################################
-#10 Index deduplicated BAM files
-############################################
-
-for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
-do
-
-echo "Indexing deduplicated ${sample}..."
-
-samtools index \
-09_markduplicates/${sample}.dedup.bam
+    damageprofiler \
+        -i 05_bam_files/${sample}.filtered.dedup.bam \
+        -r /home/haradhan/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa \
+        -t 2 \
+        -o 09_damage_profiler/${sample} \
+        -yaxis_dp_max 0.30
 
 done
-
-########################################################3
+######################################################
