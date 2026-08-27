@@ -9,7 +9,7 @@ scp "haradhan@10.58.98.100:/home/haradhan/Historic_wgs_dolphin/03_trimmed/fastqc
 # Map the NAS as Y:
 net use Y: "\\10.58.98.14\datastorage\Haradhan\Modern_wgs_dolphins"
 # Test-Path "Y:\" ( It will show True)
-scp "haradhan@10.58.98.100:/home/haradhan/Modern_wgs_dolphin/01_raw_data/IRR_5_S179_L006_R1_001.fastq.gz" "haradhan@10.58.98.100:/home/haradhan/Modern_wgs_dolphin/01_raw_data/IRR_5_S179_L006_R2_001.fastq.gz" "Y:\"
+scp "haradhan@10.58.98.100:/home/haradhan/Modern_wgs_dolphin/01_raw_data/IRR_4_S178_L006_R2_001.fastq.gz" "Y:\"
 ########################################################
 2. Delete the Map, to access it form Run prompt
 ##########################################################
