@@ -39,6 +39,22 @@ samtools index \
 05_bam_files/${sample}.filtered.bam
 
 done
+############################################
+# 4. Qualimap QC of raw sorted BAM files
+############################################
+
+for sample in DP_1 DP_2 DP_4 DP_6 DP_7 DP_8 DP_9 DP_12 DP_14
+do
+
+    echo "Running Qualimap BAMQC for ${sample}..."
+
+    qualimap bamqc \
+        -bam 05_bam_files/${sample}.bam \
+        -nt 2 \
+        -outdir qualimap_results_raw/${sample} \
+        -outformat HTML
+
+done
 
 ################################################################
 ############################################
