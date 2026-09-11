@@ -2,3 +2,12 @@
 mkdir compre_result_paleomix
 conda create -n paleomix_env python=3.8
 ####################################################
+# rescale bam files
+########################################################################################
+mapDamage \
+  -i ~/compre_result_paleomix/01_historic/DP_8.dolphin_chr.bam \
+  -r /home/haradhan/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fasta \
+  -d ~/compre_result_paleomix/01_historic/DP_8.dolphin_chr.mapDamage/Library_1 \
+  --rescale-only \
+  --rescale-out ~/compre_result_paleomix/03_historic_rescaled/DP_8.dolphin_chr.rescaled.bam
+#########################################################################################
