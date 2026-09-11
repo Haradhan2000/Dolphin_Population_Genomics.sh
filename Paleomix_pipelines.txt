@@ -4,10 +4,13 @@ conda create -n paleomix_env python=3.8
 ####################################################
 # rescale bam files
 ########################################################################################
-mapDamage \
-  -i ~/compre_result_paleomix/01_historic/DP_8.dolphin_chr.bam \
-  -r /home/haradhan/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fasta \
-  -d ~/compre_result_paleomix/01_historic/DP_8.dolphin_chr.mapDamage/Library_1 \
-  --rescale-only \
-  --rescale-out ~/compre_result_paleomix/04_historic_rescaled/DP_8.dolphin_chr.rescaled.bam
+for s in DP_12 DP_14 DP_6 DP_7 DP_8
+do
+    mapDamage \
+      -i ~/compre_result_paleomix/01_historic/${s}.dolphin_chr.bam \
+      -r /home/haradhan/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fasta \
+      -d ~/compre_result_paleomix/01_historic/${s}.dolphin_chr.mapDamage/Library_1 \
+      --rescale-only \
+      --rescale-out ~/compre_result_paleomix/04_historic_rescaled/${s}.dolphin_chr.rescaled.bam
+done
 #########################################################################################
