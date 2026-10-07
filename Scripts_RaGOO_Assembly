@@ -188,4 +188,10 @@ echo "Genome is now ready for:"
 echo "- historic DNA mapping"
 echo "- SNP calling"
 echo "- population genomics"
-####################################################################################3
+####################################################################################
+Snail Plot 
+blobtools create \
+  --fasta ../06_final_reference/dolphin_chr.fa \
+  --meta meta.json \
+  Pgangetica_chr_dataset
+##########################################
