@@ -14,3 +14,9 @@ do
       --rescale-out ~/compre_result_paleomix/04_historic_rescaled/${s}.dolphin_chr.rescaled.bam
 done
 #########################################################################################
+qualimap bamqc \
+    -bam /home/haradhan/compre_result_paleomix/02_modern/SRR11431927.dolphin_chr.bam \
+    -outdir /home/haradhan/compre_result_paleomix/05_qualimap_results/bamqc_SRR11431927 \
+    -outformat PDF \
+    -nt 16
+##################################################################################################
