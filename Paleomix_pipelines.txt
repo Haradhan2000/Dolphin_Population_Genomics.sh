@@ -66,3 +66,37 @@ done
 echo "Qualimap analysis completed."
 #########################################################################################
 ##################################################################################################
+# Modern Dolphin Nucleotide Diversity Analysis Using ANGSD
+# Software: ANGSD, realSFS
+# Reference: RaGOO-improved dolphin genome
+# Samples: SRR11431927, SRR13005646
+Step 1. Generate the site allele frequency likelihood (SAF) files
+
+REF=/home/haradhan/Dolphin_WGS_Analysis/07_indexes/dolphin_chr.fa
+
+for sample in SRR11431927 SRR13005646
+do
+    angsd \
+        -bam 06_nucleotide_diversity/${sample}/${sample}.list \
+        -ref "$REF" \
+        -anc "$REF" \
+        -out 06_nucleotide_diversity/${sample}/${sample} \
+        -doSaf 1 \
+        -GL 1 \
+        -minMapQ 30 \
+        -minQ 20 \
+        -remove_bads 1 \
+        -uniqueOnly 1 \
+        -doCounts 1 \
+        -P 8
+done
+###############################################################################
+Step 2. Estimate the site frequency spectrum (SFS)
+
+for sample in SRR11431927 SRR13005646
+do
+    realSFS \
+        06_nucleotide_diversity/${sample}/${sample}.saf.idx \
+        > 06_nucleotide_diversity/${sample}/${sample}.sfs
+done
+#################################################################################
