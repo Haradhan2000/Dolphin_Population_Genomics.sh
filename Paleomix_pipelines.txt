@@ -115,13 +115,18 @@ do
     echo "$sample theta calculation completed"
 done
 ###################################################################################
-Step 4 — Calculate window-based statistics
 for sample in SRR11431927 SRR13005646
 do
+    echo "======================================"
+    echo "Calculating 50-kb window statistics for $sample"
+    echo "======================================"
+
     thetaStat do_stat \
         06_nucleotide_diversity/${sample}/${sample}.thetas.idx \
         -win 50000 \
         -step 50000 \
         -outnames 06_nucleotide_diversity/${sample}/${sample}_window
+
+    echo "$sample window statistics completed"
 done
 ########################################################################################
