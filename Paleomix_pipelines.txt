@@ -130,3 +130,29 @@ do
     echo "$sample window statistics completed"
 done
 ########################################################################################
+for sample in SRR11431927 SRR13005646
+do
+    echo "===== $sample ====="
+
+    awk '
+    BEGIN { FS="[ \t]+" }
+    /^#/ { next }
+    NF >= 16 &&
+    $7 ~ /^[0-9]+([.][0-9]+)?([eE][-+]?[0-9]+)?$/ &&
+    $16 ~ /^[0-9]+$/ && $16 > 0 {
+        sumTP += $7
+        sumSites += $16
+        nWindows++
+    }
+    END {
+        if (sumSites > 0) {
+            printf "Valid windows: %d\n", nWindows
+            printf "Sum of tP: %.6f\n", sumTP
+            printf "Sum of nSites: %.0f\n", sumSites
+            printf "Preliminary pi per site: %.10f\n", sumTP/sumSites
+        } else {
+            print "No valid windows found"
+        }
+    }' "06_nucleotide_diversity/${sample}/${sample}_window.pestPG"
+done
+#################################################################################
