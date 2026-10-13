@@ -100,3 +100,31 @@ do
         > 06_nucleotide_diversity/${sample}/${sample}.sfs
 done
 #################################################################################
+Step 3 — Calculate theta statistics
+for sample in SRR11431927 SRR13005646
+do
+    echo "======================================"
+    echo "Calculating theta for $sample"
+    echo "======================================"
+
+    realSFS saf2theta \
+        06_nucleotide_diversity/${sample}/${sample}.saf.idx \
+        -sfs 06_nucleotide_diversity/${sample}/${sample}.sfs \
+        -outname 06_nucleotide_diversity/${sample}/${sample}
+
+    thetaStat do_stat \
+        06_nucleotide_diversity/${sample}/${sample}.thetas.idx
+
+    echo "$sample theta analysis completed"
+done
+###################################################################################
+Step 4 — Calculate window-based statistics
+for sample in SRR11431927 SRR13005646
+do
+    thetaStat do_stat \
+        06_nucleotide_diversity/${sample}/${sample}.thetas.idx \
+        -win 50000 \
+        -step 50000 \
+        -outnames 06_nucleotide_diversity/${sample}/${sample}_window
+done
+########################################################################################
